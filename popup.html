@@ -1,0 +1,46 @@
+<html>
+    <head>
+        <link type="text/css" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.2/themes/base/jquery-ui.css" rel="stylesheet">
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js"></script>
+        <script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.2/jquery-ui.min.js"></script>
+        <script>
+            function log(descr, obj) {
+                console.log(Date().toString() + " " + descr);
+                console.log(obj);
+            }
+
+            function dumpNode(bNode) {                
+                log("dumpNode", bNode);
+                var list;
+                if(bNode.children)
+                    list = dumpTree(bNode);
+                else
+                    list = bNode.title;
+                return list;
+
+            }
+
+            function dumpTree(bTree)
+            {
+                log("dumpTree", bTree);
+                var list;
+                for(var i = 0; i< bTree.children.length; i++)
+                    list += dumpNode(bTree.children[i]);
+                return list;
+            }
+
+            function dumpMarks()
+            {
+                chrome.bookmarks.getTree(
+                    function(marks) {
+                        for(var i = 0; i < marks.length; i++)
+                            $('#bookmarks').append(dumpTree(marks[i]));
+                    });
+            }
+        </script>
+    </head>
+
+    <body onload="dumpMarks()">        
+        <div id="bookmarks">red</div>
+    </body>
+</html>
