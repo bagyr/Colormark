@@ -15,7 +15,7 @@
                 if(bNode.children)
                     list = dumpTree(bNode);
                 else
-                    list = bNode.title;
+                    list = bNode.url;
                 return list;
 
             }
@@ -23,24 +23,51 @@
             function dumpTree(bTree)
             {
                 log("dumpTree", bTree);
-                var list;
+                var list = [];
                 for(var i = 0; i< bTree.children.length; i++)
-                    list += dumpNode(bTree.children[i]);
+                    list.push(dumpNode(bTree.children[i]));
                 return list;
+            }
+
+            function traverseThroughNodes(tree, fun)
+            {
+                if(tree instanceof Array)
+                    for(var i = 0; i<tree.length; i++)
+                        traverseThroughNodes(tree[i], fun);
+                else {
+                    fun(tree);
+                }
             }
 
             function dumpMarks()
             {
                 chrome.bookmarks.getTree(
                     function(marks) {
+                        var re = RegExp('^http');
                         for(var i = 0; i < marks.length; i++)
-                            $('#bookmarks').append(dumpTree(marks[i]));
-                    });
+                            //$('#bookmarks').append(dumpTree(marks[i]));
+                            var urls = dumpTree(marks[i]);
+                            for(var j = 0; j < urls.length; j++) {
+                                traverseThroughNodes(urls[j], function(node) {
+                                    log("Closure@dumpMarks", node);
+                                    if(re.test(node)) {
+                                        var img = $('<img />').attr('src',
+                                            'http://' + node.split('/')[2] + '/favicon.ico');
+                                        img.error(function() {
+                                            $(this).hide();
+                                            log("Image error at:", node);
+                                        });
+                                        $('#bookmarks').append(img);
+                                    }
+                                });
+                                }
+                            }
+                        );
             }
         </script>
     </head>
 
     <body onload="dumpMarks()">        
-        <div id="bookmarks">red</div>
+        <div id="bookmarks"></div>
     </body>
 </html>
